@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>電気基礎 穴埋めクイズ</title>
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--ink:#20283a;--muted:#667085;--accent:#5367d9;--good:#168653;--bad:#c33e4b;--line:#e5e8f0}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#eef1ff,#f8f9fc 55%,#eaf7f2);font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif;color:var(--ink)}
+.wrap{max-width:820px;margin:auto;padding:22px 15px 40px}.hero{text-align:center;padding:18px 8px 20px}.hero .tag{display:inline-block;background:#e4e8ff;color:#4556c0;border-radius:99px;padding:6px 12px;font-size:12px;font-weight:700}.hero h1{font-size:clamp(25px,6vw,36px);margin:12px 0 7px}.hero p{color:var(--muted);margin:0;font-size:14px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 8px 25px #26345a0c;margin:14px 0}
+h2{font-size:18px;margin:0 0 12px}.categories{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.cat{border:1px solid var(--line);background:#fff;border-radius:13px;padding:13px;text-align:left;font:inherit;cursor:pointer}.cat strong{display:block;font-size:14px}.cat small{color:var(--muted)}.cat.active{border:2px solid var(--accent);background:#f2f4ff}
+button{font:inherit}.primary{border:0;background:var(--accent);color:white;padding:13px 18px;border-radius:12px;font-weight:700;cursor:pointer}.secondary{border:1px solid var(--line);background:#fff;padding:11px 15px;border-radius:11px;cursor:pointer}.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}.muted{color:var(--muted);font-size:13px}.topline{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:12px}.progress{height:9px;background:#edf0f6;border-radius:99px;overflow:hidden;margin:10px 0 18px}.bar{height:100%;background:var(--accent);width:0%;transition:width .2s}
+.qnum{font-size:13px;color:var(--muted);font-weight:700}.question{font-size:20px;line-height:1.8;font-weight:700;margin:14px 0 18px}.blank{display:inline-block;min-width:86px;border-bottom:2px solid var(--accent);color:var(--accent);text-align:center;padding:0 5px}.answer{width:100%;padding:15px;border:1.5px solid #d8ddea;border-radius:12px;font-size:17px;outline:none}.answer:focus{border-color:var(--accent);box-shadow:0 0 0 3px #5367d91c}.feedback{border-radius:13px;padding:14px;margin-top:15px;line-height:1.65}.feedback.good{background:#eaf7f0;border:1px solid #bfe7d1}.feedback.bad{background:#fff0f1;border:1px solid #f0c6cb}.feedback strong{display:block;margin-bottom:4px}.hidden{display:none!important}.score{font-size:40px;font-weight:800;color:var(--accent)}.result{text-align:center}.result h2{font-size:24px}.pill{display:inline-block;background:#f0f2f8;border-radius:99px;padding:5px 10px;font-size:12px;color:#555f75}
+@media(max-width:480px){.panel{padding:16px}.categories{grid-template-columns:1fr}.question{font-size:18px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero"><span class="tag">高校 電気基礎・定期考査対策</span><h1>⚡ 電気基礎 穴埋めクイズ</h1><p>写真のプリント内容から出題！答えを入力して覚えよう。</p></header>
+<section id="home" class="panel">
+<h2>📚 練習する分野を選ぼう</h2>
+<div class="categories" id="categories"></div>
+<p class="muted" style="margin:15px 0 0">※「まとめて挑戦」は全分野からランダムに出題します。漢字・記号・単位はプリントの表記を意識して入力してね。</p>
+<div class="row" style="margin-top:18px"><button class="primary" id="allBtn">全分野まとめて挑戦</button></div>
+</section>
+<section id="quiz" class="panel hidden">
+<div class="topline"><span class="qnum" id="counter">第1問</span><span class="pill" id="topic"></span></div>
+<div class="progress"><div class="bar" id="bar"></div></div>
+<div class="question" id="question"></div>
+<input class="answer" id="answer" autocomplete="off" placeholder="答えを入力（例：ジュール熱）">
+<div class="row" style="margin-top:13px"><button class="primary" id="checkBtn">答え合わせ</button><button class="secondary" id="hintBtn">ヒント</button><button class="secondary" id="quitBtn">やめる</button></div>
+<div id="feedback" class="feedback hidden" aria-live="polite"></div>
+<div class="row" style="justify-content:flex-end;margin-top:12px"><button class="primary hidden" id="nextBtn">次の問題へ →</button></div>
+</section>
+<section id="result" class="panel hidden result">
+<div style="font-size:38px">🎉</div><h2>チャレンジ終了！</h2><div class="score" id="score"></div><p id="resultText"></p><div id="missed" style="text-align:left;margin:18px 0"></div>
+<div class="row" style="justify-content:center"><button class="primary" id="retryBtn">もう一度挑戦</button><button class="secondary" id="homeBtn">分野選択に戻る</button></div>
+</section>
+</div>
+<script>
+const topics=[
+{name:"電流の発熱作用",icon:"🔥",qs:[
+["電気抵抗に電流を流すと熱が発生する。この熱を何という？","ジュール熱","電流によって抵抗で発生する熱を「ジュール熱」というよ。"],
+["抵抗 R[Ω] に電圧 V[V] を加え、電流 I[A] が t 秒流れたとき、発生する熱量 Q[J] の式は？","Q=I²Rt", "ジュール熱の式は Q = I²Rt。電流の2乗・抵抗・時間を掛けるよ。",["Q＝I^2Rt","Q=I^2*R*t"]],
+["ジュール熱の式 Q = I²Rt が表す法則を何という？","ジュールの法則","電流による発熱量を表す法則が「ジュールの法則」だよ。"],
+["水 1 kg の温度を 1 ℃上げるのに必要な熱量を表す物質固有の値を何という？","比熱","比熱は、物質 1 kg の温度を 1 K（または1℃）上げるのに必要な熱量だよ。"],
+["水の比熱は約何 J/(kg・K)？","4.19×10³","プリントでは水の比熱を 4.19×10³ J/(kg・K) としているよ。",["4.19×10^3","4.19*10^3","4190"]],
+["水の温度を T₁[℃] から T₂[℃] にするとき、質量 M[kg] の水に必要な熱量の式は？","Q=4.19×10³M(T₂−T₁)","水の熱量は Q = 4.19×10³ M (T₂−T₁)。質量と温度変化を掛けるよ。",["Q=4.19*10^3*M*(T2-T1)","Q＝4.19×10^3M(T2-T1)","Q=4190M(T2-T1)"]]
+]},
+{name:"電力と電力量",icon:"🔋",qs:[
+["電力の単位に用いられ、単位記号が W で表されるものは？","ワット","電力の単位はワットで、記号は W だよ。"],
+["ワットの単位記号は？","W","電力の単位記号は大文字の W だよ。"],
+["1 W・h = 1 W ×（　）s。空欄に入る数値は？","3600","1時間は 3600 秒なので、1 W・h = 3600 W・s だよ。",["３６００"]],
+["1 W・h は何 W・s に等しい？","3600","1時間＝3600秒だから、1 W・h = 3600 W・s。",["3600W・s","3600Ws"]],
+["電力量は「電力 × 何」で表される？","時間","電力量＝電力×時間。電力を使った時間が長いほど電力量は大きくなるよ。"]
+]},
+{name:"静電現象",icon:"✨",qs:[
+["同種の電荷間には何力が働く？","反発","同じ種類の電荷どうしは反発し合うよ。"],
+["異種の電荷間には何力が働く？","吸引","異なる種類の電荷どうしは引き合うので、吸引力が働くよ。"],
+["同種の電荷の反発や異種の電荷の吸引を起こす力を何という？","静電気力","電荷どうしに働く力を静電気力というよ。"],
+["クーロンの法則で、静電気力の大きさは両電荷の電気量の何に比例する？","積","2つの電荷の電気量の積に比例するよ。"],
+["クーロンの法則で、静電気力の大きさは距離の2乗に何する？","反比例","電荷間の距離の2乗に反比例するよ。距離が大きくなると力は小さくなるよ。"],
+["導体に帯電体を近づけると、近い側には帯電体と何種の電荷が現れる？","異","近い側には帯電体と異なる種類の電荷が現れるよ。"],
+["導体に帯電体を近づけると、遠い側には帯電体と何種の電荷が現れる？","同","遠い側には帯電体と同じ種類の電荷が現れるよ。"],
+["導体に帯電体を近づけたとき、導体内の電荷が偏る現象を何という？","静電誘導","帯電体の影響で導体内の電荷が移動して偏る現象が静電誘導だよ。"],
+["電子機器類を静電誘導から防止するときに利用されるものは？","静電遮へい","導体で囲むなどして外部の静電気の影響を防ぐことを静電遮へいというよ。",["静電遮蔽","静電シールド"]]
+]},
+{name:"電界と電界の強さ",icon:"⚡",qs:[
+["電荷のまわりにできる、電気的な影響をおよぼす空間を何という？","電界","電荷の周囲にできる電気的な影響の及ぶ空間が電界だよ。"],
+["電界の状態を表す仮想的な線を何という？","電気力線","電界の様子を視覚的に表す仮想の線を電気力線というよ。"],
+["電気力線は何の電荷から出る？","正","電気力線は正の電荷から出るよ。"],
+["電気力線は何の電荷にはいる？","負","電気力線は負の電荷にはいるよ。"],
+["電気力線の密度は、その点における何の大きさを表す？","電界","電気力線が密なところほど電界が強いよ。"],
+["電界中に 1 C の正電荷を置いたとき、これに働く静電力の何と何をもった量を電界の強さという？","大きさと向き","電界の強さは、1 C の正電荷に働く静電力の大きさと向きで表されるよ。",["大きさ・向き","大きさ及び向き"]],
+["誘電率 ε が異なる物質の境界面で、電気力線が不連続となるため、ε倍した新たな線を何という？","電束","誘電率 ε を掛けて考える新たな線を電束というよ。"]
+]},
+{name:"電位と静電容量",icon:"🔌",qs:[
+["電界の強さが零の点 O から点 P へ、1 C の正電荷を移動させるのに必要な仕事を点 P の何という？","電位","基準点から単位正電荷を移動させるのに必要な仕事が電位だよ。"],
+["導体の表面の電位 V と電荷 Q の関係 Q = CV における定数 C を何という？","静電容量","Q = CV の比例定数 C が静電容量だよ。電荷を蓄える能力を表すよ。"],
+["静電容量の単位には何が用いられる？","ファラド","静電容量の単位はファラドだよ。"],
+["ファラドの単位記号は？","F","ファラドは大文字の F で表すよ。"],
+["1 pF = 10⁻¹² F の p は何を表す接頭語？","ピコ","p（ピコ）は 10⁻¹² を表す接頭語だよ。"],
+["1 μF は何 F？","10⁻⁶","マイクロ（μ）は 10⁻⁶ を表すよ。",["10^-6","0.000001","1×10^-6"]],
+["1 pF は何 F？","10⁻¹²","ピコ（p）は 10⁻¹² を表すよ。",["10^-12","1×10^-12","0.000000000001"]]
+]}
+];
+const $=id=>document.getElementById(id);
+let selected=[],idx=0,correct=0,answered=false,misses=[],lastTopic=0;
+const norm=s=>String(s).trim().replace(/\s/g,"").replace(/[＝]/g,"=").replace(/[−ー]/g,"-").replace(/²/g,"^2").replace(/₁/g,"1").replace(/₂/g,"2").toLowerCase();
+function renderCats(){ $("categories").innerHTML=topics.map((t,i)=>`<button class="cat" data-i="${i}"><strong>${t.icon} ${t.name}</strong><small>${t.qs.length}問</small></button>`).join("");document.querySelectorAll(".cat").forEach(b=>b.onclick=()=>{document.querySelectorAll(".cat").forEach(x=>x.classList.remove("active"));b.classList.add("active");start([+b.dataset.i]);});}
+function start(ids){selected=ids.flatMap(i=>topics[i].qs.map(q=>({...{q:q[0],a:q[1],ex:q[2],alts:q[3]||[]},topic:topics[i].name})));if(ids.length>1)selected.sort(()=>Math.random()-.5);idx=0;correct=0;misses=[];$("home").classList.add("hidden");$("result").classList.add("hidden");$("quiz").classList.remove("hidden");show();}
+function show(){answered=false;let q=selected[idx];$("counter").textContent=`第 ${idx+1} 問 / ${selected.length} 問`;$("topic").textContent=q.topic;$("bar").style.width=`${idx/selected.length*100}%`;$("question").textContent=q.q;$("answer").value="";$("answer").disabled=false;$("feedback").className="feedback hidden";$("nextBtn").classList.add("hidden");$("checkBtn").classList.remove("hidden");$("answer").focus();}
+function check(){if(answered)return;let v=$("answer").value;if(!v.trim()){$("feedback").className="feedback bad";$("feedback").innerHTML="<strong>答えを入力してね！</strong>思いつかないときはヒントも使えるよ。";return;}answered=true;let q=selected[idx],ok=[q.a,...q.alts].some(a=>norm(a)===norm(v));if(ok)correct++;else misses.push(q);$("answer").disabled=true;$("checkBtn").classList.add("hidden");$("nextBtn").classList.remove("hidden");$("feedback").className="feedback "+(ok?"good":"bad");$("feedback").innerHTML=ok?`<strong>⭕ 正解！</strong>${q.ex}`:`<strong>❌ 惜しい！ 正解は「${q.a}」</strong>${q.ex}`;}
+function next(){idx++;if(idx>=selected.length)finish();else show();}
+function finish(){$("quiz").classList.add("hidden");$("result").classList.remove("hidden");$("bar").style.width="100%";$("score").textContent=`${correct} / ${selected.length} 問`;$("resultText").textContent=`正答率 ${Math.round(correct/selected.length*100)}％！${correct===selected.length?"全問正解！すばらしい！": "間違えた問題を復習して、もう一度挑戦してみよう！"}`;$("missed").innerHTML=misses.length?`<h3>📖 復習しよう（${misses.length}問）</h3>`+misses.map(m=>`<div style="padding:10px;border-bottom:1px solid #e5e8f0"><b>${m.q}</b><div style="color:#168653;margin:5px 0">正解：${m.a}</div><small>${m.ex}</small></div>`).join(""):"<p>間違えた問題はありません！完璧！";$("retryBtn").onclick=()=>start([...new Set(selected.map(x=>topics.findIndex(t=>t.name===x.topic)))]);}
+$("allBtn").onclick=()=>start(topics.map((_,i)=>i));$("checkBtn").onclick=check;$("nextBtn").onclick=next;$("answer").addEventListener("keydown",e=>{if(e.key==="Enter"){answered?next():check();}});$("hintBtn").onclick=()=>{let q=selected[idx];$("feedback").className="feedback";$("feedback").innerHTML=`<strong>💡 ヒント</strong>答えの文字数は ${q.a.length} 文字。問題文の用語や公式を思い出してみよう！`;};$("quitBtn").onclick=()=>{$("quiz").classList.add("hidden");$("home").classList.remove("hidden");};$("homeBtn").onclick=()=>{$("result").classList.add("hidden");$("home").classList.remove("hidden");};renderCats();
+</script>
+</body>
+</html>
